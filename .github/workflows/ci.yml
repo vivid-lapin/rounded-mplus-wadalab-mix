@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "リリースを作成する"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Setup Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Audit fonts
+        run: uv run python tools/font_audit.py
+
+      - name: Build fonts
+        run: uv run python tools/build_composite_fonts.py
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ttf
+          path: dist/*.ttf
+          if-no-files-found: error
+
+      - name: Upload analysis artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: analysis
+          path: analysis/
+          if-no-files-found: error
+
+      - name: Release
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TZ: Asia/Tokyo
+        run: |
+          release_name="$(date -u +%Y%m%d%H%M)"
+          zip -r analysis.zip analysis
+          if gh release view "$release_name" >/dev/null 2>&1; then
+            gh release upload "$release_name" dist/*.ttf analysis.zip --clobber
+          else
+            gh release create "$release_name" dist/*.ttf analysis.zip \
+              --title "$release_name" \
+              --notes "Rounded M+ WadaLab mix fonts"
+          fi

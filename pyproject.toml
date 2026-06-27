@@ -1,0 +1,9 @@
+[project]
+name = "rounded-mplus-wadalab-mix"
+version = "0.1"
+description = "Rounded M+ WadaLab mix fonts"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fonttools>=4.63.0",
+]

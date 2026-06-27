@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+wheels/
+*.egg-info
+.DS_Store
+
+# Virtual environments
+.venv/
+
+# Local Python version pin
+.python-version
+
+# Generated audit/build reports
+analysis/
+
+# Optional local comparison font
+rounded-mplus-1m-arib.ttf
